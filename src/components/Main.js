@@ -1,7 +1,8 @@
 import { useReducer } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import Homepage from '../pages/Homepage';
 import BookingPage from '../pages/BookingPage';
+import ConfirmedBooking from '../pages/ConfirmedBooking';
 import About from '../pages/About';
 import Menu from '../pages/Menu';
 import OrderOnline from '../pages/OrderOnline';
@@ -11,12 +12,10 @@ import Login from '../pages/Login';
 const initializeTimes = () => {
   const today = new Date();
   
-  // window.fetchAPIが利用可能か確認
   if (window.fetchAPI) {
     return window.fetchAPI(today);
   }
   
-  // フォールバック: APIが利用できない場合のデフォルト時間
   return [
     '17:00',
     '18:00',
@@ -31,7 +30,6 @@ const initializeTimes = () => {
 const updateTimes = (state, action) => {
   switch (action.type) {
     case 'UPDATE_TIMES':
-      // APIから選択された日付の利用可能な時間を取得
       if (window.fetchAPI && action.date) {
         const selectedDate = new Date(action.date);
         return window.fetchAPI(selectedDate);
@@ -44,6 +42,22 @@ const updateTimes = (state, action) => {
 
 function Main() {
   const [availableTimes, dispatch] = useReducer(updateTimes, [], initializeTimes);
+  const navigate = useNavigate();
+
+  const submitForm = (formData) => {
+    // APIにフォームデータを送信
+    if (window.submitAPI) {
+      const success = window.submitAPI(formData);
+      if (success) {
+        // 送信成功時、確認ページに遷移
+        navigate('/confirmed');
+      }
+    } else {
+      // APIが利用できない場合でも確認ページに遷移
+      console.log('Form submitted:', formData);
+      navigate('/confirmed');
+    }
+  };
 
   return (
     <main>
@@ -57,9 +71,11 @@ function Main() {
             <BookingPage 
               availableTimes={availableTimes}
               dispatch={dispatch}
+              submitForm={submitForm}
             />
           } 
         />
+        <Route path="/confirmed" element={<ConfirmedBooking />} />
         <Route path="/order" element={<OrderOnline />} />
         <Route path="/login" element={<Login />} />
       </Routes>

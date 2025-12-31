@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function BookingForm({ availableTimes, dispatch }) {
+function BookingForm({ availableTimes, dispatch, submitForm }) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('17:00');
   const [guests, setGuests] = useState(1);
@@ -8,7 +8,6 @@ function BookingForm({ availableTimes, dispatch }) {
 
   const handleDateChange = (e) => {
     setDate(e.target.value);
-    // 日付が変更されたら、利用可能な時間を更新
     dispatch({ type: 'UPDATE_TIMES', date: e.target.value });
   };
 
@@ -20,8 +19,7 @@ function BookingForm({ availableTimes, dispatch }) {
       guests,
       occasion
     };
-    console.log('Booking submitted:', formData);
-    // TODO: Submit to API
+    submitForm(formData);
   };
 
   return (
