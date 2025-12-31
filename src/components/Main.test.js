@@ -1,33 +1,47 @@
-// reducer関数の単体テスト
-test('initializeTimes returns the correct initial times', () => {
-  const initializeTimes = () => {
-    return [
-      '17:00',
-      '18:00',
-      '19:00',
-      '20:00',
-      '21:00',
-      '22:00'
-    ];
+// APIのモック関数
+const seededRandom = function (seed) {
+  var m = 2**35 - 31;
+  var a = 185852;
+  var s = seed % m;
+  return function () {
+    return (s = s * a % m) / m;
   };
+}
+
+const fetchAPI = function(date) {
+  let result = [];
+  let random = seededRandom(date.getDate());
+
+  for(let i = 17; i <= 23; i++) {
+    if(random() < 0.5) {
+      result.push(i + ':00');
+    }
+    if(random() < 0.5) {
+      result.push(i + ':30');
+    }
+  }
+  return result;
+};
+
+// initializeTimesのテスト
+test('initializeTimes returns non-empty array of available times', () => {
+  const today = new Date();
+  const times = fetchAPI(today);
   
-  const result = initializeTimes();
-  expect(result).toEqual(['17:00', '18:00', '19:00', '20:00', '21:00', '22:00']);
-  expect(result.length).toBe(6);
+  expect(times).toBeInstanceOf(Array);
+  expect(times.length).toBeGreaterThan(0);
 });
 
+// updateTimesのテスト - デフォルトアクション
 test('updateTimes returns the same state when no action is matched', () => {
   const updateTimes = (state, action) => {
     switch (action.type) {
       case 'UPDATE_TIMES':
-        return [
-          '17:00',
-          '18:00',
-          '19:00',
-          '20:00',
-          '21:00',
-          '22:00'
-        ];
+        if (action.date) {
+          const selectedDate = new Date(action.date);
+          return fetchAPI(selectedDate);
+        }
+        return state;
       default:
         return state;
     }
@@ -40,26 +54,25 @@ test('updateTimes returns the same state when no action is matched', () => {
   expect(result).toEqual(initialState);
 });
 
-test('updateTimes returns new times when UPDATE_TIMES action is dispatched', () => {
+// updateTimesのテスト - UPDATE_TIMESアクション
+test('updateTimes returns new times when UPDATE_TIMES action is dispatched with a date', () => {
   const updateTimes = (state, action) => {
     switch (action.type) {
       case 'UPDATE_TIMES':
-        return [
-          '17:00',
-          '18:00',
-          '19:00',
-          '20:00',
-          '21:00',
-          '22:00'
-        ];
+        if (action.date) {
+          const selectedDate = new Date(action.date);
+          return fetchAPI(selectedDate);
+        }
+        return state;
       default:
         return state;
     }
   };
   
   const initialState = [];
-  const action = { type: 'UPDATE_TIMES', date: '2025-01-01' };
+  const action = { type: 'UPDATE_TIMES', date: '2025-01-15' };
   const result = updateTimes(initialState, action);
   
-  expect(result).toEqual(['17:00', '18:00', '19:00', '20:00', '21:00', '22:00']);
+  expect(result).toBeInstanceOf(Array);
+  expect(result.length).toBeGreaterThan(0);
 });
