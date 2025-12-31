@@ -7,8 +7,16 @@ import Menu from '../pages/Menu';
 import OrderOnline from '../pages/OrderOnline';
 import Login from '../pages/Login';
 
-// 利用可能な時間を初期化する関数
+// APIから今日の利用可能な時間を取得
 const initializeTimes = () => {
+  const today = new Date();
+  
+  // window.fetchAPIが利用可能か確認
+  if (window.fetchAPI) {
+    return window.fetchAPI(today);
+  }
+  
+  // フォールバック: APIが利用できない場合のデフォルト時間
   return [
     '17:00',
     '18:00',
@@ -19,13 +27,16 @@ const initializeTimes = () => {
   ];
 };
 
-// 選択された日付に基づいて利用可能な時間を更新する関数
+// 選択された日付に基づいてAPIから利用可能な時間を更新
 const updateTimes = (state, action) => {
   switch (action.type) {
     case 'UPDATE_TIMES':
-      // 今のところ、日付に関係なく同じ時間を返す
-      // 後でAPIと連携して実際の利用可能時間を取得する
-      return initializeTimes();
+      // APIから選択された日付の利用可能な時間を取得
+      if (window.fetchAPI && action.date) {
+        const selectedDate = new Date(action.date);
+        return window.fetchAPI(selectedDate);
+      }
+      return state;
     default:
       return state;
   }
